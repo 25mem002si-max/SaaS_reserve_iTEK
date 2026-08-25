@@ -1,0 +1,34 @@
+{"name": "SaaS Multi-Agent IA - Web Dashboard",
+// Utilise votre configuration Docker existante
+"dockerComposeFile": "../docker-compose.yml",
+// S'ancre sur le conteneur du Dashboard Web
+"service": "web-dashboard",
+"workspaceFolder": "/workspace",
+  
+// Installe les extensions VS Code exclusives pour le Développeur 3
+"customizations": {
+  "vscode": {
+    "extensions": [
+// Frontend & Next.js
+      "dsznajder.es7-react-js-snippets",    // Snippets de code React/Next.js rapides
+      "dbaeumer.vscode-eslint",          // Validation de la qualité du code
+      "esbenp.prettier-vscode",          // Formatage automatique du code au clic
+      
+      // Design & Intégration
+      "bradlc.vscode-tailwindcss",       // Auto-complétion des classes Tailwind CSS
+      "figma.figma-vscode-extension",    // Intégration directe des maquettes Figma
+
+// Outils d'infrastructure et de collaboration
+"ms-azuretools.vscode-docker",     // Gestion des conteneurs locaux
+"ms-vsliveshare.vsliveshare"       // Travail d'équipe en temps réel (si besoin d'aide)
+]}
+},
+  // Redirige en priorité le port du Front-end
+  "forwardPorts":,
+  "portsAttributes": {
+    "3000": {
+      "label": "Front-End Next.js (Dashboard)",
+      "onAutoForward": "openBrowser" // Ouvre automatiquement le site dans le navigateur au démarrage
+    }
+  }
+}
