@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  web-dashboard:
+    image: ://microsoft.com
+    volumes:
+      - .:/workspace:cached
+    command: /bin/sh -c "while true; do sleep 1000; done"
+    ports:
+      - "3000:3000"
