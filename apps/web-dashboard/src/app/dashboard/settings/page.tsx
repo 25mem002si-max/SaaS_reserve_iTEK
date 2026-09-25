@@ -1,12 +1,8 @@
-// Configuration du restaurant : devise, cles Mobile Money, activation agent IA
+import SettingsPanel from "@/components/settings/SettingsPanel";
+
+// La route reste un Server Component : seul le panneau interactif a besoin
+// de "use client". Ce découpage garde la page lisible et ne modifie ni le
+// layout partagé, ni les routes Salle, Réservations, Analytics ou le chat.
 export default function SettingsPage() {
-  return (
-    <div className="space-y-4">
-      <h1 className="text-xl font-semibold">Parametres du restaurant</h1>
-      <p className="text-gray-600">
-        TODO: formulaire de configuration (devise USD/CDF, cles Mobile Money,
-        zones de tables).
-      </p>
-    </div>
-  );
+  return <SettingsPanel />;
 }
