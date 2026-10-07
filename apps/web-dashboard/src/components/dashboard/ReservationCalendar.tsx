@@ -1,20 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Calendar, dateFnsLocalizer } from "react-big-calendar";
-import format from "date-fns/format";
-import parse from "date-fns/parse";
-import startOfWeek from "date-fns/startOfWeek";
-import getDay from "date-fns/getDay";
-import fr from "date-fns/locale/fr";
+import { format } from "date-fns/format";
+import { parse } from "date-fns/parse";
+import { startOfWeek } from "date-fns/startOfWeek";
+import { getDay } from "date-fns/getDay";
+import { fr } from "date-fns/locale/fr";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { fetchReservations, fetchTables } from "@/lib/api";
 import ReservationDetailsModal from "./ReservationDetailsModal";
 import type { Reservation, RestaurantTable } from "@/lib/types";
 
-// react-big-calendar a besoin d'un "localizer" pour savoir comment
-// formater les dates/heures et sur quel jour commence la semaine (lundi en
-// France/RDC, contrairement aux Etats-Unis ou c'est dimanche).
 const locales = { fr };
 const localizer = dateFnsLocalizer({
   format,
@@ -24,9 +22,6 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-// Type d'un "evenement" tel que react-big-calendar les attend : un titre a
-// afficher, une date de debut/fin, et un champ libre `resource` dans lequel
-// on range la reservation complete pour pouvoir la retrouver au clic.
 interface CalendarEvent {
   title: string;
   start: Date;
@@ -34,8 +29,12 @@ interface CalendarEvent {
   resource: Reservation;
 }
 
-// Calendrier des reservations (issu de la table `reservations` PostgreSQL).
 export default function ReservationCalendar() {
+  // useRouter (next/navigation, App Router) permet de naviguer vers une
+  // autre page en JavaScript, sans recharger toute la page - utilise ici
+  // pour aller sur /dashboard/reservations/[date] au clic sur un jour.
+  const router = useRouter();
+
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [tables, setTables] = useState<RestaurantTable[]>([]);
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
@@ -67,6 +66,25 @@ export default function ReservationCalendar() {
           startAccessor="start"
           endAccessor="end"
           culture="fr"
+          // `selectable` active la detection de clic sur une case de jour
+          // VIDE (sans evenement dessus). Sans cette prop, onSelectSlot ne
+          // serait jamais declenche.
+          selectable
+          // onSelectSlot : declenche quand on clique sur une case de jour du
+          // calendrier (en dehors d'un evenement existant). `slotInfo.start`
+          // contient la date du jour cliqué. On la formate en "YYYY-MM-DD"
+          // (avec la fonction `format` de date-fns deja importee plus haut)
+          // et on navigue vers la page dediee a ce jour.
+          onSelectSlot={(slotInfo: { start: Date }) => {
+            const dayKey = format(slotInfo.start, "yyyy-MM-dd");
+            router.push(`/dashboard/reservations/${dayKey}`);
+          }}
+          // onSelectEvent : callback fourni par react-big-calendar, appele
+          // avec l'evenement cliqué (donc un clic PRECISEMENT sur la barre
+          // "Jean Kabila (4 pers.)", pas sur la case de jour). On recupere
+          // `event.resource` (la reservation complete qu'on avait rangee
+          // dedans plus haut) pour ouvrir la modale de detail existante -
+          // ce comportement ne change pas.
           onSelectEvent={(event: CalendarEvent) => setSelectedReservation(event.resource)}
         />
       </div>

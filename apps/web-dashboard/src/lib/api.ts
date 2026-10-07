@@ -1,4 +1,5 @@
 import type { Reservation, RestaurantTable } from "./types";
+import type { AnalyticsPeriod } from "./analytics";
 import { getToken } from "./auth";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -36,14 +37,26 @@ export function toggleAgent(enabled: boolean): Promise<{ enabled: boolean }> {
   });
 }
 
-export function fetchAttendanceStats(): Promise<{ day: string; guests: number }[]> {
-  return apiFetch("/analytics/attendance");
+// Les 3 fonctions ci-dessous prennent desormais une `period` (ex: "7d",
+// "30d", "90d" — voir src/lib/analytics.ts) et la transmettent au backend
+// via un parametre de requete `?period=...`. C'est le backend (API du Dev
+// 2) qui doit interpreter cette valeur pour filtrer/agreger les donnees en
+// consequence — a synchroniser avec lui : nom exact du parametre et
+// valeurs acceptees doivent correspondre EXACTEMENT des deux cotes.
+export function fetchAttendanceStats(
+  period: AnalyticsPeriod
+): Promise<{ day: string; guests: number }[]> {
+  return apiFetch(`/analytics/attendance?period=${period}`);
 }
 
-export function fetchPopularDishes(): Promise<{ name: string; value: number }[]> {
-  return apiFetch("/analytics/popular-dishes");
+export function fetchPopularDishes(
+  period: AnalyticsPeriod
+): Promise<{ name: string; value: number }[]> {
+  return apiFetch(`/analytics/popular-dishes?period=${period}`);
 }
 
-export function fetchRevenueForecast(): Promise<{ month: string; revenue: number }[]> {
-  return apiFetch("/analytics/revenue-forecast");
+export function fetchRevenueForecast(
+  period: AnalyticsPeriod
+): Promise<{ month: string; revenue: number }[]> {
+  return apiFetch(`/analytics/revenue-forecast?period=${period}`);
 }

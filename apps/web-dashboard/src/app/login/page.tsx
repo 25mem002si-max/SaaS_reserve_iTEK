@@ -10,6 +10,8 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [recoveryMessage, setRecoveryMessage] = useState<string | null>(null);
+  const [registrationMessage, setRegistrationMessage] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -48,14 +50,44 @@ export default function LoginPage() {
           required
         />
 
-        {error && <p className="text-danger text-sm mb-2">{error}</p>}
-
         <button
           type="submit"
           className="w-full bg-primary text-white rounded-lg p-2 font-medium"
         >
           Se connecter
         </button>
+
+        {recoveryMessage && (
+          <p className="text-sm text-gray-600 mb-2" role="status">
+            {recoveryMessage}
+          </p>
+        )}
+
+        {error && <p className="text-danger text-sm mb-2">{error}</p>}
+
+        
+        <button
+          type="button"
+          onClick={() => setRecoveryMessage("La récupération du mot de passe sera bientôt disponible.")}
+          className="block ml-auto text-sm text-primary hover:underline mb-3"
+        >
+          Mot de passe oublié ?
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setRegistrationMessage("La création de compte sera bientôt disponible.")}
+          className="block mx-auto text-sm text-primary hover:underline"
+        >
+          Créer un compte
+        </button>
+
+        {registrationMessage && (
+          <p className="text-sm text-gray-600 mt-2 text-center" role="status">
+            {registrationMessage}
+          </p>
+        )}
+
       </form>
     </main>
   );
