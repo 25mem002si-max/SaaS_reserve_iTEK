@@ -1,0 +1,41 @@
+[project]
+name = "ai-engine"
+version = "0.1.0"
+description = "AI Engine pour réservations de restaurants - SaaS RDC"
+authors = [
+    {name = "Dev1 - Lead AI Engine", email = "dev1@example.com"}
+]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 100
+target-version = ['py311']
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+strict = true
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "I", "N", "UP"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "--cov=app --cov-report=term-missing"

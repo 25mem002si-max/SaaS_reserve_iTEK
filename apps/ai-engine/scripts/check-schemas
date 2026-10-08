@@ -1,0 +1,193 @@
+#!/usr/bin/env python
+"""Script pour vérifier que tous les schémas fonctionnent."""
+
+import sys
+from pathlib import Path
+from datetime import datetime
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from app.schemas import (
+    ConversationState,
+    ExtractedInformation,
+    Intent,
+    IntentType,
+    ReservationData,
+    AvailabilityRequest,
+    RecommendationRequest,
+    PaymentRequest,
+    HumanHandoffRequest,
+    AgentError,
+    ErrorType,
+)
+
+
+def test_conversation_state():
+    """Teste ConversationState."""
+    print("📌 Test ConversationState...")
+    
+    state = ConversationState(
+        conversation_id="conv-001",
+        restaurant_id="rest-001",
+        channel="chat",
+    )
+    state.add_message("user", "Bonjour, je voudrais réserver une table")
+    state.add_message("assistant", "Bonjour ! Pour combien de personnes ?")
+    
+    assert state.conversation_id == "conv-001"
+    assert len(state.messages) == 2
+    assert state.get_last_user_message().content == "Bonjour, je voudrais réserver une table"
+    print("   ✅ OK")
+
+
+def test_extracted_information():
+    """Teste ExtractedInformation."""
+    print("📌 Test ExtractedInformation...")
+    
+    extracted = ExtractedInformation(
+        date=datetime(2026, 8, 25, 19, 0, 0),
+        time="19:00",
+        guests_count=4,
+        preferences=["poisson", "vin rouge"],
+        allergies=["arachides"],
+        budget=50.0,
+        currency="USD",
+        raw_text="Bonjour, je voudrais réserver demain à 19h pour 4 personnes",
+        confidence=0.95,
+    )
+    
+    assert extracted.has_complete_reservation_info() is True
+    assert extracted.missing_fields() == []
+    
+    # Test avec données manquantes
+    incomplete = ExtractedInformation(
+        date=datetime(2026, 8, 25, 19, 0, 0),
+        time="19:00",
+        guests_count=None,
+        raw_text="test",
+        confidence=0.5,
+    )
+    assert incomplete.has_complete_reservation_info() is False
+    assert "guests_count" in incomplete.missing_fields()
+    print("   ✅ OK")
+
+
+def test_reservation_data():
+    """Teste ReservationData."""
+    print("📌 Test ReservationData...")
+    
+    reservation = ReservationData(
+        date=datetime(2026, 8, 25, 19, 0, 0),
+        time="19:00",
+        guests_count=4,
+        preferences=["poisson"],
+        table_id="table-001",
+        customer_name="Jean Dupont",
+        customer_phone="+243123456789",
+    )
+    
+    assert reservation.is_complete() is True
+    print("   ✅ OK")
+
+
+def test_intent():
+    """Teste Intent."""
+    print("📌 Test Intent...")
+    
+    intent = Intent(
+        type=IntentType.NEW_RESERVATION,
+        confidence=0.92,
+    )
+    assert intent.is_reservation_intent() is True
+    print("   ✅ OK")
+
+
+def test_availability():
+    """Teste AvailabilityRequest."""
+    print("📌 Test AvailabilityRequest...")
+    
+    request = AvailabilityRequest(
+        restaurant_id="rest-001",
+        date=datetime(2026, 8, 25, 19, 0, 0),
+        guests_count=4,
+        preferred_zone="Terrasse",
+    )
+    assert request.guests_count == 4
+    print("   ✅ OK")
+
+
+def test_payment():
+    """Teste PaymentRequest."""
+    print("📌 Test PaymentRequest...")
+    
+    request = PaymentRequest(
+        reservation_id="res-001",
+        restaurant_id="rest-001",
+        amount=25.0,
+        currency="USD",
+        phone_number="+243123456789",
+        provider="m_pesa",
+    )
+    assert request.amount == 25.0
+    print("   ✅ OK")
+
+
+def test_handoff():
+    """Teste HumanHandoffRequest."""
+    print("📌 Test HumanHandoffRequest...")
+    
+    request = HumanHandoffRequest(
+        conversation_id="conv-001",
+        restaurant_id="rest-001",
+        reason="requested_by_user",
+        summary="Client demande à parler à un humain",
+        collected_data={"guests": 4, "date": "2026-08-25"},
+    )
+    assert request.reason == "requested_by_user"
+    print("   ✅ OK")
+
+
+def test_errors():
+    """Teste AgentError."""
+    print("📌 Test AgentError...")
+    
+    error = AgentError(
+        error_type=ErrorType.NO_TABLES_AVAILABLE,
+        message="Aucune table disponible",
+        agent_name="reservation_agent",
+    )
+    user_msg = error.to_user_message()
+    assert "aucune table" in user_msg
+    print("   ✅ OK")
+
+
+def main():
+    print("=" * 60)
+    print("🔍 TEST DES SCHÉMAS PYDANTIC")
+    print("=" * 60)
+    print()
+    
+    try:
+        test_conversation_state()
+        test_extracted_information()
+        test_reservation_data()
+        test_intent()
+        test_availability()
+        test_payment()
+        test_handoff()
+        test_errors()
+        
+        print()
+        print("=" * 60)
+        print("✅ Tous les tests de schémas sont passés !")
+        print("=" * 60)
+        return 0
+    except Exception as e:
+        print(f"\n❌ Erreur: {e}")
+        import traceback
+        traceback.print_exc()
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

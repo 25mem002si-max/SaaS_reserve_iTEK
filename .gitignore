@@ -8,3 +8,21 @@ __pycache__/
 dist/
 build/
 .next/
+# Python
+**/.venv/
+**/__pycache__/
+**/*.pyc
+
+# Environment
+# IDE
+.vscode/
+.idea/
+# OS
+Thumbs.db
+# Tests / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+# Logs
+*.log
+apps/api-core/.env

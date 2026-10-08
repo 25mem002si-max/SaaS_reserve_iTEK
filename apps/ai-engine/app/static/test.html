@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Engine | Console agents</title>
+  <style>
+    :root { --ink:#17231f; --muted:#6d7d76; --paper:#f5f7f1; --panel:#fffdf8; --line:#dce5dc; --green:#176b52; --mint:#d8eee2; --orange:#d97843; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; color:var(--ink); background:radial-gradient(circle at 85% 8%, #d8eee0 0 16%, transparent 38%), linear-gradient(135deg,#f8faf5,#edf3ec); font-family:Georgia, 'Times New Roman', serif; }
+    .shell { width:min(1180px, calc(100% - 32px)); margin:0 auto; padding:28px 0 40px; }
+    header { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom:22px; }
+    .eyebrow { color:var(--orange); font:700 11px/1.2 Arial,sans-serif; letter-spacing:2px; text-transform:uppercase; }
+    h1 { margin:7px 0 0; font-size:clamp(32px, 5vw, 58px); line-height:.95; font-weight:500; letter-spacing:0; }
+    .subtitle { max-width:330px; margin:0; color:var(--muted); font:14px/1.5 Arial,sans-serif; }
+    .layout { display:grid; grid-template-columns:280px 1fr; min-height:650px; border:1px solid var(--line); background:rgba(255,253,248,.82); box-shadow:0 18px 50px rgba(23,55,42,.08); }
+    aside { padding:24px; border-right:1px solid var(--line); background:#edf4eb; }
+    .section-label { margin:0 0 14px; color:var(--muted); font:700 11px Arial,sans-serif; letter-spacing:1.4px; text-transform:uppercase; }
+    label { display:block; margin:16px 0 7px; color:var(--muted); font:12px Arial,sans-serif; }
+    input { width:100%; padding:11px 0; border:0; border-bottom:1px solid #b9cbbd; outline:0; color:var(--ink); background:transparent; font:15px Georgia,serif; }
+    input:focus { border-color:var(--green); }
+    .status { display:flex; align-items:center; gap:8px; margin-top:28px; color:var(--muted); font:12px Arial,sans-serif; }
+    .dot { width:9px; height:9px; border-radius:50%; background:#48a878; box-shadow:0 0 0 4px #d4eadb; }
+    main { display:flex; flex-direction:column; min-width:0; }
+    .topbar { display:flex; justify-content:space-between; align-items:center; padding:18px 24px; border-bottom:1px solid var(--line); }
+    .agent { color:var(--green); font:700 12px Arial,sans-serif; }
+    .clear { border:0; padding:6px 0; color:var(--muted); background:none; cursor:pointer; font:12px Arial,sans-serif; }
+    .messages { flex:1; overflow:auto; padding:28px 7%; }
+    .empty { display:grid; place-items:center; height:100%; min-height:300px; color:var(--muted); text-align:center; font-size:18px; }
+    .empty strong { display:block; margin-bottom:8px; color:var(--ink); font-size:26px; font-weight:500; }
+    .bubble-row { display:flex; margin:0 0 20px; animation:rise .3s ease both; }
+    .bubble-row.user { justify-content:flex-end; }
+    .bubble { max-width:min(650px, 84%); padding:14px 17px; border:1px solid var(--line); background:white; font:15px/1.5 Arial,sans-serif; white-space:pre-wrap; }
+    .user .bubble { border-color:#b7d7c2; background:var(--mint); }
+    .meta { margin:0 0 5px; color:var(--muted); font:10px Arial,sans-serif; letter-spacing:1px; text-transform:uppercase; }
+    .composer { display:flex; gap:10px; align-items:flex-end; padding:18px 24px 22px; border-top:1px solid var(--line); }
+    textarea { flex:1; min-height:48px; max-height:140px; resize:vertical; padding:13px 14px; border:1px solid var(--line); outline:0; background:#fff; color:var(--ink); font:15px Arial,sans-serif; }
+    textarea:focus { border-color:var(--green); }
+    button { cursor:pointer; }
+    .icon-btn, .send { height:48px; border:1px solid var(--green); background:var(--green); color:#fff; font:700 13px Arial,sans-serif; }
+    .icon-btn { width:48px; border-color:var(--line); background:#fff; color:var(--green); font-size:19px; }
+    .icon-btn.listening { border-color:var(--orange); background:#fff0e6; color:var(--orange); }
+    .send { padding:0 20px; }
+    .hint { padding:0 24px 17px; color:var(--muted); font:11px Arial,sans-serif; }
+    @keyframes rise { from { opacity:0; transform:translateY(7px); } to { opacity:1; transform:none; } }
+    @media (max-width:720px) { .shell { width:calc(100% - 20px); padding-top:18px; } header { display:block; } .subtitle { margin-top:13px; } .layout { display:block; } aside { border-right:0; border-bottom:1px solid var(--line); } .messages { padding:22px 16px; } .composer { padding:14px 12px 16px; } .send { padding:0 14px; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div><div class="eyebrow">AI Engine / laboratoire</div><h1>Console agents</h1></div>
+      <p class="subtitle">Teste le parcours client en chat et parle directement à l’assistant depuis ton navigateur.</p>
+    </header>
+    <div class="layout">
+      <aside>
+        <p class="section-label">Contexte de test</p>
+        <label for="restaurant">Restaurant</label><input id="restaurant" value="restaurant-test" autocomplete="off">
+        <label for="name">Nom du client</label><input id="name" value="Jean Dupont" autocomplete="name">
+        <label for="phone">Téléphone</label><input id="phone" value="+243123456789" autocomplete="tel">
+        <div class="status"><span class="dot"></span><span id="connection">Prêt à tester</span></div>
+      </aside>
+      <main>
+        <div class="topbar"><span class="agent" id="agent">AGENT EN ATTENTE</span><button class="clear" id="clear">Effacer la conversation</button></div>
+        <div class="messages" id="messages"><div class="empty" id="empty"><div><strong>Bonjour.</strong>Écris une demande de réservation pour commencer.</div></div></div>
+        <div class="composer"><button class="icon-btn" id="mic" title="Parler au microphone" aria-label="Parler au microphone">◉</button><textarea id="input" placeholder="Exemple : une table demain à 20h pour 4 personnes" rows="1"></textarea><button class="send" id="send">Envoyer</button></div>
+        <div class="hint" id="hint">Le bouton microphone utilise la reconnaissance vocale du navigateur. Les réponses peuvent être lues à voix haute.</div>
+      </main>
+    </div>
+  </div>
+<script>
+  const $ = id => document.getElementById(id);
+  const conversationId = `test-${Date.now()}`;
+  const messages = $('messages'), input = $('input'), mic = $('mic');
+  let recognition = null;
+  function addMessage(role, text) {
+    $('empty')?.remove();
+    const row = document.createElement('div'); row.className = `bubble-row ${role}`;
+    const bubble = document.createElement('div'); bubble.className = 'bubble';
+    const meta = document.createElement('div'); meta.className = 'meta'; meta.textContent = role === 'user' ? 'Vous' : 'Assistant';
+    bubble.append(meta, document.createTextNode(text)); row.appendChild(bubble); messages.appendChild(row); messages.scrollTop = messages.scrollHeight;
+  }
+  function speak(text) { if ('speechSynthesis' in window) { speechSynthesis.cancel(); speechSynthesis.speak(new SpeechSynthesisUtterance(text)); } }
+  async function sendMessage(fromVoice = false) {
+    const text = input.value.trim(); if (!text) return;
+    addMessage('user', text); input.value = ''; $('connection').textContent = 'Traitement en cours…'; $('agent').textContent = 'AGENT EN COURS'; $('send').disabled = true;
+    try {
+      const response = await fetch('/api/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ conversation_id:conversationId, restaurant_id:$('restaurant').value.trim() || 'restaurant-test', message:text, customer_name:$('name').value.trim() || null, customer_phone:$('phone').value.trim() || null }) });
+      const data = await response.json(); if (!response.ok) throw new Error(data.detail || 'Erreur serveur');
+      addMessage('assistant', data.message); $('agent').textContent = (data.agent || 'assistant').replaceAll('_',' ').toUpperCase(); $('connection').textContent = data.next_action ? `Action : ${data.next_action}` : 'Réponse reçue'; if (fromVoice) speak(data.message);
+    } catch (error) { addMessage('assistant', `Le service est indisponible : ${error.message}`); $('connection').textContent = 'Erreur de connexion'; }
+    finally { $('send').disabled = false; input.focus(); }
+  }
+  $('send').addEventListener('click', sendMessage); input.addEventListener('keydown', event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); } });
+  $('clear').addEventListener('click', () => { messages.innerHTML = '<div class="empty" id="empty"><div><strong>Conversation effacée.</strong>Écris une nouvelle demande pour commencer.</div></div>'; $('agent').textContent = 'AGENT EN ATTENTE'; $('connection').textContent = 'Prêt à tester'; });
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) { mic.disabled = true; mic.title = 'Reconnaissance vocale non supportée par ce navigateur'; $('hint').textContent = 'La reconnaissance vocale n’est pas supportée ici. Utilise Chrome ou Edge, ou écris ton message.'; }
+  else {
+    recognition = new SpeechRecognition(); recognition.lang = 'fr-FR'; recognition.interimResults = false; recognition.continuous = false;
+    recognition.onstart = () => { mic.classList.add('listening'); $('connection').textContent = 'Écoute en cours…'; };
+    recognition.onend = () => { mic.classList.remove('listening'); if ($('connection').textContent === 'Écoute en cours…') $('connection').textContent = 'Prêt à tester'; };
+    recognition.onerror = event => { $('connection').textContent = `Microphone : ${event.error}`; };
+    recognition.onresult = event => { input.value = event.results[0][0].transcript; sendMessage(true); };
+    mic.addEventListener('click', () => { if (mic.classList.contains('listening')) recognition.stop(); else recognition.start(); });
+  }
+</script>
+</body>
+</html>

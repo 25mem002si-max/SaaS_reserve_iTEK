@@ -1,34 +1,44 @@
-{"name": "SaaS Multi-Agent IA - Web Dashboard",
-// Utilise votre configuration Docker existante
-"dockerComposeFile": "../docker-compose.yml",
-// S'ancre sur le conteneur du Dashboard Web
-"service": "web-dashboard",
-"workspaceFolder": "/workspace",
-  
-// Installe les extensions VS Code exclusives pour le Développeur 3
-"customizations": {
-  "vscode": {
-    "extensions": [
-// Frontend & Next.js
-      "dsznajder.es7-react-js-snippets",    // Snippets de code React/Next.js rapides
-      "dbaeumer.vscode-eslint",          // Validation de la qualité du code
-      "esbenp.prettier-vscode",          // Formatage automatique du code au clic
-      
-      // Design & Intégration
-      "bradlc.vscode-tailwindcss",       // Auto-complétion des classes Tailwind CSS
-      "figma.figma-vscode-extension",    // Intégration directe des maquettes Figma
+{
+  "name": "SaaS Multi-Agent IA",
+  "dockerComposeFile": ["../docker-compose.yml"],
+  "service": "devcontainer",
+  "workspaceFolder": "/workspaces/SaaS_reserve_iTEK",
 
-// Outils d'infrastructure et de collaboration
-"ms-azuretools.vscode-docker",     // Gestion des conteneurs locaux
-"ms-vsliveshare.vsliveshare"       // Travail d'équipe en temps réel (si besoin d'aide)
-]}
-},
-  // Redirige en priorité le port du Front-end
-  "forwardPorts":,
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": { "version": "20" }
+  },
+
+  "postCreateCommand": "pip install -r apps/api-core/requirements.txt -r apps/ai-engine/requirements.txt",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        // Frontend & Next.js
+        "dsznajder.es7-react-js-snippets",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "figma.figma-vscode-extension",
+
+        // Backend Python (FastAPI, LangChain)
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+
+        // Base de données & infra
+        "cweijan.vscode-postgresql-client2",
+        "ms-azuretools.vscode-docker",
+        "ms-vsliveshare.vsliveshare"
+      ]
+    }
+  },
+
+  "forwardPorts": [3000, 8000, 5432, 6379],
   "portsAttributes": {
     "3000": {
       "label": "Front-End Next.js (Dashboard)",
-      "onAutoForward": "openBrowser" // Ouvre automatiquement le site dans le navigateur au démarrage
-    }
+      "onAutoForward": "openBrowser"
+    },
+    "8000": { "label": "API FastAPI" }
   }
 }

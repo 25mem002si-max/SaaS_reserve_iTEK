@@ -1,0 +1,16 @@
+{
+	"user_message": {
+		"message_id": "msg-1",
+		"conversation_id": "conv-1",
+		"type": "user_message",
+		"timestamp": "2026-09-03T12:00:00Z",
+		"payload": {"content": "Je veux réserver demain à 20h pour 4 personnes"}
+	},
+	"payment_pending": {
+		"message_id": "msg-2",
+		"conversation_id": "conv-1",
+		"type": "payment_pending",
+		"timestamp": "2026-09-03T12:00:01Z",
+		"payload": {"payment_id": "payment-1", "status": "PENDING"}
+	}
+}

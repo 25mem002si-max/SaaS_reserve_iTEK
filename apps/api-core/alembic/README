@@ -1,0 +1,5 @@
+# Alembic
+
+Ce dossier contient les fichiers de migration de la base de données du projet Restaurant SaaS.
+
+Les migrations sont générées avec Alembic et appliquées à PostgreSQL.

@@ -1,0 +1,64 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  # Service Redis (essentiel pour le verrouillage)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+  # Service Backend (Dev2) - à démarrer séparément
+  # backend:
+  #   build: ../backend
+  #   ports:
+  #     - "8000:8000"
+  #   depends_on:
+  #     - redis
+  #   environment:
+  #     - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/restaurant
+  #     - REDIS_URL=redis://redis:6379/0
+
+  # Service AI Engine (Dev1)
+  ai-engine:
+    build: .
+    ports:
+      - "8001:8001"
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - BACKEND_API_URL=http://backend:8000
+    volumes:
+      - .:/app
+    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8001
+
+  # PostgreSQL (pour Dev2)
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=restaurant
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+
+volumes:
+  redis_data:
+  postgres_data:

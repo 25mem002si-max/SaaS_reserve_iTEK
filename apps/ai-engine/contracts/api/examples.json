@@ -1,0 +1,16 @@
+{
+	"availability_request": {
+		"restaurant_id": "restaurant-1",
+		"date": "2026-09-04T20:00:00",
+		"guests_count": 4,
+		"preferred_zone": "Terrasse"
+	},
+	"payment_request": {
+		"reservation_id": "reservation-1",
+		"restaurant_id": "restaurant-1",
+		"amount": 10.0,
+		"currency": "USD",
+		"phone_number": "+243123456789",
+		"provider": "m_pesa"
+	}
+}
