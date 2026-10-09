@@ -24,6 +24,7 @@ class BackendClient:
         path: str,
         payload: Optional[Dict[str, Any]] = None,
         retryable: bool = False,
+        params: Optional[Dict[str, Any]] = None,   # <-- Ajout du paramètre params pour les requêtes GET
     ) -> Dict[str, Any]:
         attempts = (settings.backend_retry_count or 0) + 1 if retryable else 1
         for attempt in range(attempts):
@@ -32,6 +33,7 @@ class BackendClient:
                     method,
                     f"{self.base_url}/{path.lstrip('/')}",
                     json=payload,
+                    params=params,  # <-- Ajout du paramètre params pour les requêtes GET
                     headers=self.headers,
                     timeout=self.timeout,
                 )
@@ -50,26 +52,42 @@ class BackendClient:
         raise RuntimeError("La requête backend a échoué")
 
     def check_availability(self, payload: Dict[str, Any]) -> Dict[str, Any]:
-        return self._request("POST", "/api/availability", payload, retryable=True)
+        # changement de "/api/avalability" en "/restaurant/{restaurant_id}/availability" pour correspondre aux routes du backend
+        # changement de "POST" en "GET"
+        restaurant_id = payload["restaurant_id"]
+        params = {k: v for k, v in payload.items() if k != "restaurant_id"}
+
+        'return self._request("POST", "/restaurant/{restaurant_id}/availability", payload, retryable=True)'
+        
+        return self._request(
+            "GET",
+            f"/restaurants/{restaurant_id}/availability",
+            params=params, retryable=True,
+        )
 
     def lock_table(self, table_id: str, restaurant_id: str, duration_seconds: int) -> Dict[str, Any]:
         return self._request(
             "POST",
-            f"/api/restaurants/{restaurant_id}/tables/{table_id}/lock",
+            # suppression de "/api/" pour correspondre aux routes du backend
+            f"/restaurants/{restaurant_id}/tables/{table_id}/lock",
             {"duration_seconds": duration_seconds},
         )
 
     def unlock_table(self, table_id: str, restaurant_id: str) -> Dict[str, Any]:
         return self._request(
             "DELETE",
-            f"/api/restaurants/{restaurant_id}/tables/{table_id}/lock",
+            # suppression de "/api/" pour correspondre aux routes du backend
+            f"/restaurants/{restaurant_id}/tables/{table_id}/lock",
         )
 
     def create_reservation(self, payload: Dict[str, Any]) -> Dict[str, Any]:
-        return self._request("POST", "/api/reservations", payload)
+        # suppression de "/api/" pour correspondre aux routes du backend
+        return self._request("POST", "/reservations", payload)
 
     def create_payment(self, payload: Dict[str, Any]) -> Dict[str, Any]:
-        return self._request("POST", "/api/payments", payload)
+        # suppression de "/api/" pour correspondre aux routes du backend
+        return self._request("POST", "/payments", payload)
 
     def get_payment_status(self, payment_id: str) -> Dict[str, Any]:
-        return self._request("GET", f"/api/payments/{payment_id}", retryable=True)
+        # suppression de "/api/" pour correspondre aux routes du backend
+        return self._request("GET", f"/payments/{payment_id}", retryable=True)

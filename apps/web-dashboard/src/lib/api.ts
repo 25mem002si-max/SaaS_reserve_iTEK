@@ -22,9 +22,13 @@ async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> 
   return res.json() as Promise<T>;
 }
 
-export function fetchTables(): Promise<RestaurantTable[]> {
-  return apiFetch<RestaurantTable[]>("/tables");
+// modification des tables selon le restaurant selectionne dans le dashboard
+
+export function fetchTables(restaurantId: string): Promise<RestaurantTable[]> {
+  return apiFetch<RestaurantTable[]>(`/restaurants/${restaurantId}/tables`);
 }
+
+// fin de modification
 
 export function fetchReservations(): Promise<Reservation[]> {
   return apiFetch<Reservation[]>("/reservations");

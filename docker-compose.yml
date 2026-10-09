@@ -5,7 +5,7 @@ services:
       - .:/workspaces/SaaS_reserve_iTEK:cached
     command: sleep infinity
     environment:
-      DATABASE_URL: postgresql://restaurant_user:restaurant_password@postgres:5432/restaurant_db
+      DATABASE_URL: postgresql+psycopg://restaurant_user:restaurant_password@postgres:5432/restaurant_db
       REDIS_URL: redis://redis:6379/0
     depends_on:
       - postgres

@@ -1,5 +1,10 @@
 from fastapi import FastAPI
 
+# les ajouts pour le branchement avec le front-end
+import os
+from fastapi.middleware.cors import CORSMiddleware
+
+
 from src.api.users import router as users_router
 from src.api.auth import router as auth_router
 from src.api.restaurants import router as restaurants_router
@@ -16,6 +21,17 @@ app = FastAPI(
     version="1.0.0",
 )
 
+# les ajouts pour le branchement avec le front-end
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=os.getenv("CORS_ORIGINS","http://localhost:3000").split(","),
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Fin d'ajouts pour le branchement avec le front-end
 
 @app.get("/health")
 def health():

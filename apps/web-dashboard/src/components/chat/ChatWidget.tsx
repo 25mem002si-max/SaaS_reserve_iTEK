@@ -1,41 +1,29 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { getSocket } from "@/lib/websocket";
 import ChatBubble from "./ChatBubble";
 import ChatInput from "./ChatInput";
 import TypingIndicator from "./TypingIndicator";
 import type { ChatMessage } from "@/lib/types";
 
-// Composant principal du widget de messagerie en direct, connecte au backend
-// via WebSocket (agent IA du Developpeur 1, expose par le Developpeur 2).
-export default function ChatWidget() {
+// Route http du backend de l'agent IA (expose par le Dev 2) pour le chat en direct
+
+const AI_URL = process.env.NEXT_PUBLIC_AI_URL ?? "http://localhost:8001";
+
+
+// restaurantId : l'id d'un restaurant existant dans api-core
+export default function ChatWidget({ restaurantId = "r1" }: { restaurantId?: string }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const socket = getSocket();
-
-    socket.on("agent_message", (msg: ChatMessage) => {
-      setIsTyping(false);
-      setMessages((prev) => [...prev, msg]);
-    });
-
-    socket.on("agent_typing", () => setIsTyping(true));
-
-    return () => {
-      socket.off("agent_message");
-      socket.off("agent_typing");
-    };
-  }, []);
+  // Un identifiant de conversation, créé une seule fois par ouverture du chat
+  const conversationId = useRef(crypto.randomUUID());
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  function handleSend(text: string) {
-    const socket = getSocket();
+  async function handleSend(text: string) {
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
       role: "user",
@@ -43,7 +31,43 @@ export default function ChatWidget() {
       timestamp: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, userMessage]);
-    socket.emit("client_message", userMessage);
+    setIsTyping(true);
+
+    try {
+      const res = await fetch(`${AI_URL}/api/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          conversation_id: conversationId.current,
+          restaurant_id: restaurantId,
+          message: text,
+        }),
+      });
+      if (!res.ok) throw new Error(`ai-engine ${res.status}`);
+      const data: { message: string } = await res.json();
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "agent",
+          text: data.message,
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "agent",
+          text: "Désolé, l'assistant est indisponible pour le moment.",
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+    } finally {
+      setIsTyping(false);
+    }
   }
 
   return (

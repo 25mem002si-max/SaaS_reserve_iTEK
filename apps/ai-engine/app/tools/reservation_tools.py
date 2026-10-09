@@ -5,6 +5,11 @@ from pydantic import BaseModel, Field
 
 from app.tools.base import BaseTool, ToolResult
 
+# AJout pour l'appel au backend Dev2 par FReddy
+
+from datetime import datetime
+from app.config.settings import settings
+from app.services.backend_client import BackendClient
 
 class LockTableParams(BaseModel):
     """Paramètres pour lock_table."""
@@ -20,7 +25,7 @@ class CreateReservationParams(BaseModel):
     customer_name: str = Field(description="Nom du client")
     customer_phone: str = Field(description="Téléphone du client")
     reservation_date: str = Field(description="Date de réservation (YYYY-MM-DD HH:MM)")
-    guests_count: int = Field(description="Nombre de personnes", ge=1, le=50)
+    number_of_people: int = Field(description="Nombre de personnes", ge=1, le=50)
     preferences: list = Field(default_factory=list, description="Préférences alimentaires")
     allergies: list = Field(default_factory=list, description="Allergies")
     deposit_amount: float = Field(default=0.0, description="Montant de l'acompte")
@@ -85,6 +90,26 @@ class CreateReservationTool(BaseTool):
             self.logger.info(f"Création réservation - {params.customer_name}")
             
             # TODO: Appeler le backend Dev2
+
+            if settings.backend_enabled:
+                dt = datetime.fromisoformat(params.reservation_date)  # "YYYY-MM-DD HH:MM"
+                data = BackendClient().create_reservation({
+                    "restaurant_id": params.restaurant_id,
+                    "table_id": params.table_id,
+                    "reservation_date": dt.date().isoformat(),
+                    "reservation_time": dt.time().isoformat(),
+                    "number_of_people": params.number_of_people,
+                })
+                return ToolResult(
+                    success=True,
+                    data={
+                        "reservation_id": data["id"],
+                        "status": data["status"],
+                        "table_id": data["table_id"],
+                },
+                message=f"Réservation {data['id']} créée avec succès",
+            )
+
             # Pour l'instant, simulation
             from datetime import datetime
             reservation_id = f"res-{datetime.now().strftime('%Y%m%d%H%M%S')}"

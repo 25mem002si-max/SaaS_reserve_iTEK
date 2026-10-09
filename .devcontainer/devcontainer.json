@@ -8,7 +8,7 @@
     "ghcr.io/devcontainers/features/node:1": { "version": "20" }
   },
 
-  "postCreateCommand": "pip install -r apps/api-core/requirements.txt -r apps/ai-engine/requirements.txt",
+  "postCreateCommand": "python -m venv apps/api-core/.venv && apps/api-core/.venv/bin/pip install -r apps/api-core/requirements.txt && python -m venv apps/ai-engine/.venv && apps/ai-engine/.venv/bin/pip install -r apps/ai-engine/requirements.txt",
 
   "customizations": {
     "vscode": {

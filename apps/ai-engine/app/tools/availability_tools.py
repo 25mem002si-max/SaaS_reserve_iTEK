@@ -6,14 +6,17 @@ from pydantic import BaseModel, Field
 
 from app.tools.base import BaseTool, ToolResult
 from app.schemas.availability import AvailabilityRequest, AvailabilityResult
+# AJout pour l'appel au backend Dev2
 
+from app.config.settings import settings
+from app.services.backend_client import BackendClient
 
 class CheckAvailabilityParams(BaseModel):
     """Paramètres pour check_availability."""
     restaurant_id: str = Field(description="ID du restaurant")
-    date: str = Field(description="Date au format YYYY-MM-DD")
-    time: str = Field(description="Heure au format HH:MM")
-    guests_count: int = Field(description="Nombre de personnes", ge=1, le=50)
+    reservation_date: str = Field(description="Date au format YYYY-MM-DD")
+    reservation_time: str = Field(description="Heure au format HH:MM")
+    number_of_people: int = Field(description="Nombre de personnes", ge=1, le=50)
     preferred_zone: Optional[str] = Field(default=None, description="Zone préférée (VIP, Terrasse, Intérieur)")
 
 
@@ -32,9 +35,37 @@ class CheckAvailabilityTool(BaseTool):
             # Valider les paramètres
             params = CheckAvailabilityParams(**kwargs)
             
-            self.logger.info(f"Vérification disponibilité - {params.restaurant_id}, {params.date} {params.time}")
-            
+            self.logger.info(f"Vérification disponibilité - {params.restaurant_id}, {params.reservation_date} {params.reservation_time}")
             # TODO: Appeler le backend Dev2
+            # Ajout pour verification de la disponibilite de la table
+
+            if settings.backend_enabled:
+                data = BackendClient().check_availability(
+                    params.restaurant_id,
+                    {
+                        "reservation_date": params.reservation_date,
+                        "reservation_time": params.reservation_time,
+                        "number_of_people": params.number_of_people,
+                    },
+                )
+                tables = [
+                    {"id": t["id"], "label": f"Table {t['table_number']}", "capacity": t["capacity"]}
+                    for t in data["available_tables"]
+                ]
+                if not tables:
+                    return ToolResult(
+                        success=False,
+                        error="AUCUNE_TABLE_DISPONIBLE",
+                        message="Aucune table disponible pour ce créneau",
+                )
+                return ToolResult(
+                    success=True,
+                    data={"tables": tables, "available": True},
+                    message="Tables disponibles trouvées",
+                )
+
+
+            
             # Pour l'instant, simulation
             import random
             
